@@ -1,0 +1,23 @@
+[package]
+name = "text_utilities"
+version = "0.1.0"
+edition = "2021"
+authors = ["mstankus <mstankus@gmail.com>"]
+
+[[bin]]
+name = "modify_file"
+path = "src/bin/modify_file.rs"
+
+[[bin]]
+name = "multidiff"
+path = "src/bin/multidiff.rs"
+
+[lib]
+name = "common"
+path = "src/common/lib.rs"
+
+
+[dependencies]
+chrono = "0.4.37"
+filetime_creation = "0.2.0"
+multimap = "0.10.0"
