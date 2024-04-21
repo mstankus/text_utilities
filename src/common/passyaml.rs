@@ -1,4 +1,5 @@
-use crate::csfunctions::CSCFunction;
+//use crate::csfunctions::*;
+use crate::csextfunctions::*;
 
 pub enum PassYamlStatus {
   NoLinesEncountered,
@@ -23,7 +24,7 @@ impl Default for PassYaml {
   }
 }
 
-impl CSCFunction<String,String> for PassYaml {
+impl CSCExtFunction<String,String> for PassYaml {
   fn invoke(&mut self,t : String) -> Option<String> {
     match self.status {
       PassYamlStatus::NoLinesEncountered => {

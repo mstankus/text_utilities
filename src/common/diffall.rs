@@ -1,7 +1,8 @@
 use std::io::{Write};
 use std::fs::{File};
 use std::process::{Command};
-use crate::csfunctions::*;
+//use crate::csfunctions::*;
+use crate::cscfunctions::*;
 
 pub struct DiffVecString {
   counter : usize
@@ -20,7 +21,7 @@ impl Default for DiffVecString {
   }
 }
 impl CSCFunction<Vec<String>,()> for DiffVecString {
-  fn invoke(&mut self,v : Vec<String>) ->Option<()> {
+  fn invoke(&mut self,v : Vec<String>) {
     self.counter += 1;
     let len = v.len();
     for i in 0..len {
@@ -52,6 +53,5 @@ impl CSCFunction<Vec<String>,()> for DiffVecString {
       }
       println!("{:?}",v);
     }
-    Some(())
   }
 }

@@ -2,10 +2,14 @@ use std::cmp::min;
 use std::path::Path;
 use std::fs::*;
 use multimap::MultiMap;
-use crate::csfunctions::*;
+//use crate::csfunctions::*;
+use crate::csmaptopower::*;
+use crate::cscfunctions::*;
+use crate::csextfunctions::*;
+//use crate::two_strings::*;
 
 pub struct RemoveLittleVecString;
-impl CSCFunction::<Vec::<String>,Vec::<String>> for RemoveLittleVecString {
+impl CSCExtFunction::<Vec::<String>,Vec::<String>> for RemoveLittleVecString {
   fn invoke(&mut self,x : Vec::<String>) -> Option::<Vec::<String>> {
     if x.len() > 1 {
       Some(x) 
@@ -26,7 +30,7 @@ impl CompareStrings {
   }
 }
 
-impl CSFunctionMut<(String,String),(usize,usize,bool)> for CompareStrings {
+impl CSCFunction<(String,String),(usize,usize,bool)> for CompareStrings {
   fn invoke(&mut self,x : (String,String)) -> (usize,usize,bool) {
     let they_are_equal = x.0==x.1;
     if they_are_equal {
@@ -50,7 +54,7 @@ pub struct PassMultipleBlankLines {
   previous_line : Option<String>,
 }
 
-impl CSCFunction<String,String> for PassMultipleBlankLines {
+impl CSCExtFunction<String,String> for PassMultipleBlankLines {
   fn invoke(&mut self,x : String) -> Option<String> {
     let use_none = x.is_empty() && 
                    self.previous_line.is_some() && 
@@ -65,7 +69,7 @@ impl CSCFunction<String,String> for PassMultipleBlankLines {
 }
 
 pub struct SplitByName;
-impl CSFunction::<Vec::<String>,Vec::<Vec::<String>>> for SplitByName {
+impl CSMapToPower::<Vec::<String>> for SplitByName {
   fn invoke(&self,x : Vec::<String>) -> Vec::<Vec::<String>> {
     let mut result = Vec::<Vec::<String>>::new();
     let mut h = MultiMap::new();
@@ -85,10 +89,8 @@ impl CSFunction::<Vec::<String>,Vec::<Vec::<String>>> for SplitByName {
   }
 }
 
-impl CSMapToPower::<Vec::<String>> for SplitByName {}
-
 pub struct SplitBySize;
-impl CSFunction::<Vec::<String>,Vec::<Vec::<String>>> for SplitBySize {
+impl CSMapToPower::<Vec::<String>> for SplitBySize {
   fn invoke(&self,x : Vec::<String>) -> Vec::<Vec::<String>> {
     let mut result = Vec::<Vec::<String>>::new();
     let mut h = MultiMap::new();
@@ -107,76 +109,9 @@ impl CSFunction::<Vec::<String>,Vec::<Vec::<String>>> for SplitBySize {
   }
 }
 
-impl CSMapToPower::<Vec::<String>> for SplitBySize {}
-
 #[cfg(test)]
 mod tests {
   use super::*;
-
-  #[test]
-  fn test_construct_original() {
-    let mut it = AppendOriginal {};
-    let orig = "def".to_string();
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abcdef".to_string(),orig));
-  }
-
-  #[test]
-  fn test_construct_append() {
-    let mut it = AppendString::new("what".to_string());
-    let orig = "def".to_string();
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abcwhat".to_string(),orig));
-  }
-
-  #[test]
-  fn test_construct_original_modified() {
-    let mut it = OriginalModified::new(1,2);
-    let orig = "0123456".to_string();
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abc1234".to_string(),orig));
-  }
-
-  #[test]
-  fn test_construct_character_count() {
-    let mut it = CharacterCount{};
-    let orig = "test_file.txt".to_string();
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abc27".to_string(),orig));
-  }
-
-  #[test]
-  fn test_construct_count_words_of_length() {
-    let mut it = CountWordsOfLength{};
-    let orig = "test_file.txt".to_string();
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abc[(2, 2), (3, 3), (4, 1)]".to_string(),orig));
-  }
-
-  #[test]
-  fn test_construct_counter() {
-    let mut it = Counter::new(3);
-    let orig = "junk".to_string();
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abc3".to_string(),orig.clone()));
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abc4".to_string(),orig.clone()));
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abc5".to_string(),orig.clone()));
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abc6".to_string(),orig.clone()));
-  }
-
-  #[test]
-  fn test_construct_isfile() {
-    let mut it = IsFile{ };
-    let orig = "junk".to_string();
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abcNOT A FILE!".to_string(),orig.clone()));
-    let orig = "test_file.txt".to_string();
-    assert_eq!(it.invoke(("abc".to_string(),orig.clone())),
-               ("abctest_file.txt".to_string(),orig));
-  }
 
   #[test]
   fn compare_strings_1() {

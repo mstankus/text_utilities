@@ -1,5 +1,10 @@
-use common::csfunctions::*;
+//use common::composecscfunctions::*;
+//use common::csfunctions::*;
+use common::csextfunctions::*;
+use common::csmaptopower::*;
 use common::only_multidiff::*;
+use common::string_to_vecstring::*;
+//use common::two_strings::*;
 use std::io::{BufRead,stdin};
 use std::env;
 

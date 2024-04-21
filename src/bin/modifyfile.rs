@@ -1,10 +1,14 @@
-use common::csfunctions::*;
+//use common::csfunctions::*;
+use common::cscfunctions::*;
+//use common::composecsfunctions::*;
+use common::composecscfunctions::*;
+use common::two_strings::*;
 use std::io::{BufRead,stdin};
 use std::env;
 
 fn create_modify_file_processing(args : &Vec::<String>) 
-      -> ComposeCSFunctionMut::<(String,String)> {
-  let mut vec : Vec::<Box::<dyn CSSelfMapMut::<(String,String)>>>
+      -> ComposeCSCSelfMap::<TwoStrings> {
+  let mut vec : Vec::<Box::<dyn CSCSelfMap::<TwoStrings>>>
        = Vec::new();
   for item in args {
     if item.starts_with('-') {
@@ -35,7 +39,7 @@ fn create_modify_file_processing(args : &Vec::<String>)
       }
     }
   }
-  ComposeCSFunctionMut::<(String,String)>::new(vec)
+  ComposeCSCSelfMap::<TwoStrings>::new(vec)
 }
 
 fn create_modify_file_vec(args : &[String]) -> Vec::<String> {
@@ -61,9 +65,9 @@ fn main() {
   let mut processing = create_modify_file_processing(&args);
   let fns = create_modify_file_vec(&args);
   for a_filename in fns {  
-    let mut pr = (String::new(),a_filename.clone());
+    let mut pr = TwoStrings::new(a_filename.clone());
     pr = processing.invoke(pr);
-    println!("{}",pr.0);
+    println!("{}",pr.answer);
   }
 }
 

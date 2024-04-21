@@ -98,13 +98,13 @@ mod tests {
 
   #[test]
   fn test_construct_character_count() {
-    let result = character_count("test_file.txt");
+    let result = character_count("test_data/test_file.txt");
     assert!(result.is_ok());
     assert_eq!(result.unwrap(),27);
   }
   #[test]
   fn test_construct_count_words_of_length() {
-    let result = count_words_of_length("test_file.txt");
+    let result = count_words_of_length("test_data/test_file.txt");
     assert!(result.is_ok());
     assert_eq!(result.unwrap(),vec![(2,2),(3,3),(4,1)]);
   }
@@ -113,7 +113,7 @@ mod tests {
   fn test_construct_isfile() {
     let result = is_file("junk.txt");
     assert!(result.is_err());
-    let result = is_file("test_file.txt");
+    let result = is_file("test_data/test_file.txt");
     assert!(result.is_ok());
     assert!(result.unwrap());
     let result = is_file("src");
