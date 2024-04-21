@@ -1,4 +1,3 @@
-//use file_diff::{diff_files};
 use std::io::{Write};
 use std::fs::{File};
 use std::process::{Command};
