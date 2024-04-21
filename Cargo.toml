@@ -5,8 +5,8 @@ edition = "2021"
 authors = ["mstankus <mstankus@gmail.com>"]
 
 [[bin]]
-name = "modify_file"
-path = "src/bin/modify_file.rs"
+name = "modifyfile"
+path = "src/bin/modifyfile.rs"
 
 [[bin]]
 name = "multidiff"
@@ -20,4 +20,5 @@ path = "src/common/lib.rs"
 [dependencies]
 chrono = "0.4.37"
 filetime_creation = "0.2.0"
+md5 = "0.7.0"
 multimap = "0.10.0"
