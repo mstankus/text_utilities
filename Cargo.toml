@@ -12,6 +12,10 @@ path = "src/bin/modifyfile.rs"
 name = "multidiff"
 path = "src/bin/multidiff.rs"
 
+[[bin]]
+name = "multiremover"
+path = "src/bin/multiremover.rs"
+
 [lib]
 name = "common"
 path = "src/common/lib.rs"
@@ -19,6 +23,7 @@ path = "src/common/lib.rs"
 
 [dependencies]
 chrono = "0.4.37"
+file_diff = "1.0.0"
 filetime_creation = "0.2.0"
 md5 = "0.7.0"
 multimap = "0.10.0"

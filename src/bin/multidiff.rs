@@ -1,7 +1,8 @@
 //use common::composecscfunctions::*;
-//use common::csfunctions::*;
 use common::csextfunctions::*;
-use common::csmaptopower::*;
+//use common::csmaptopower::*;
+use common::cscmaptopower::*;
+use common::diffall::*;
 use common::only_multidiff::*;
 use common::string_to_vecstring::*;
 //use common::two_strings::*;
@@ -9,8 +10,8 @@ use std::io::{BufRead,stdin};
 use std::env;
 
 fn create_multidiff_processing(args : &Vec::<String>) 
-  -> Vec::<Box::<dyn CSMapToPower::<Vec::<String>>>>{
-  let mut vec : Vec::<Box::<dyn CSMapToPower::<Vec::<String>>>>= Vec::new();
+  -> Vec::<Box::<dyn CSCMapToPower::<Vec::<String>>>>{
+  let mut vec : Vec::<Box::<dyn CSCMapToPower::<Vec::<String>>>>= Vec::new();
   for item in args {
     if item.starts_with('-') {
       if item=="-" { continue; }
@@ -20,11 +21,15 @@ fn create_multidiff_processing(args : &Vec::<String>)
       } else if item=="-s" {
         //println!("setting up -s");
         vec.push(Box::new(SplitBySize{}));
-/*
       } else if item=="-d" {
         //println!("setting up -d");
         vec.push(Box::new(SplitByCompare{}));
-*/
+      } else if item=="-x" {
+        //println!("setting up -x");
+        vec.push(Box::new(RemoveLittleVecString{}));
+      } else if item=="-diff" {
+        //println!("setting up -diff");
+        vec.push(Box::new(DiffVecString::new()));
       } else {
         panic!("Cannot find the option {}",item);
       }
@@ -52,27 +57,42 @@ fn create_multidiff_vec(args : &[String]) -> Vec::<String> {
   result
 }
 
+fn work_through_arguments(args : Vec<String>) ->
+  (Vec::<Box::<dyn CSCMapToPower<Vec<String>>>>,Vec<String>) {
+  let processing = create_multidiff_processing(&args);
+  //println!("args:{:?}",args);
+  let fns = create_multidiff_vec(&args);
+  (processing,fns)
+}
+
+fn work_with_block(
+    processing :
+    &mut Vec::<Box::<dyn CSCMapToPower::<Vec<String>>>>,
+    block : Vec::<String>) -> Vec::<Vec::<String>> 
+{
+  let mut old_blocks = vec![block];
+  for it in processing {
+    let mut new_blocks = vec![];
+    for blk in old_blocks {
+      let mut blocks = it.invoke_mut(blk);
+
+      new_blocks.append(&mut blocks);
+    }
+    old_blocks = new_blocks;
+  }
+  old_blocks
+}
+
 fn main() {
   let args = env::args().collect::<Vec<_>>();
   //println!("args:{:?}",args);
-  let processing = create_multidiff_processing(&args);
-  let mut fns = create_multidiff_vec(&args);
+  let (mut processing,mut fns) = work_through_arguments(args);
   fns.push("".to_string());
   //println!("fns:{:?}",fns);
   let mut blocker = CreateVecStringFromBlankLineSeparated::new();
   for a_filename in fns {  
     if let Some(block) = blocker.invoke(a_filename) {
-      //println!("block:{:?}",block);
-      let mut old_blocks = vec![block];
-      for it in &processing {
-        let mut new_blocks = vec![];
-        for blk in old_blocks {
-          let mut blocks = it.invoke(blk);
-          new_blocks.append(&mut blocks);
-        }
-        old_blocks = new_blocks;
-      }
-      let result = old_blocks;
+      let result = work_with_block(&mut processing,block);
       //println!("result:{:?}",result);
       for a_block in result {
         for a_file in a_block {
@@ -83,21 +103,148 @@ fn main() {
     }
   }
 }
-/*
+
 #[cfg(test)]
 mod tests {
   use super::*;
 
+  #[test]
+  fn test_multidiff_1() {
+    let args = vec![
+        "-n".to_string(),
+        "a".to_string(),
+        "b".to_string(),
+        "x/a".to_string(),
+        "x/b".to_string()
+    ];
+    let (mut processing,fns) = work_through_arguments(args);
+    let mut result = work_with_block(&mut processing,fns);
+    for item in result.iter_mut() {
+      item.sort();
+    }
+    result.sort();
+    let answer = vec![
+           vec!["a".to_string(),"x/a".to_string()],
+           vec!["b".to_string(),"x/b".to_string()],
+    ];
+    assert_eq!(result,answer);
+  }
 
   #[test]
-  fn test_create_modifyfile_obtain() {
-    let vec = ["-a=add".to_string(),
-               "hi".to_string(),
-               "there".to_string()];
-    let mut it = create_modify_file_obtain(&vec);
-    assert_eq!(it.obtain(),Some("hi".to_string()));
-    assert_eq!(it.obtain(),Some("there".to_string()));
-    assert_eq!(it.obtain(),None);
+  fn test_multidiff_2() {
+    let args = vec![
+        "-s".to_string(),
+        "test_data/a".to_string(),
+        "test_data/b".to_string(),
+        "test_data/x/a".to_string(),
+        "test_data/x/b".to_string()
+    ];
+    let (mut processing,fns) = work_through_arguments(args);
+    assert_eq!(fns,vec![
+         "test_data/a".to_string(),
+         "test_data/b".to_string(),
+         "test_data/x/a".to_string(),
+         "test_data/x/b".to_string(),
+    ]);
+    let mut result = work_with_block(&mut processing,fns);
+    //println!("result1:{:?}",result);
+    result.sort();
+    let answer = vec![
+           vec!["test_data/a".to_string(),
+                "test_data/x/a".to_string(),
+                "test_data/x/b".to_string(),
+           ],
+           vec!["test_data/b".to_string()],
+    ];
+    assert_eq!(result,answer);
+  }
+
+  #[test]
+  fn test_multidiff_3() {
+    let args = vec![
+        "-d".to_string(),
+        "test_data/a".to_string(),
+        "test_data/b".to_string(),
+        "test_data/x/a".to_string(),
+        "test_data/x/b".to_string(),
+        "test_data/x/c".to_string()
+    ];
+    let (mut processing,fns) = work_through_arguments(args);
+    assert_eq!(fns,vec![
+         "test_data/a".to_string(),
+         "test_data/b".to_string(),
+         "test_data/x/a".to_string(),
+         "test_data/x/b".to_string(),
+         "test_data/x/c".to_string(),
+    ]);
+    let mut result = work_with_block(&mut processing,fns);
+    //println!("result1:{:?}",result);
+    result.sort();
+    let answer = vec![
+           vec![
+             "test_data/a".to_string(),
+             "test_data/x/a".to_string(),
+             "test_data/x/b".to_string(),
+           ],
+           vec![
+             "test_data/b".to_string(),
+           ],
+           vec![
+             "test_data/x/c".to_string(),
+           ],
+    ];
+    assert_eq!(result,answer);
+  }
+
+  #[test]
+  fn test_multidiff_4() {
+    let args = vec![
+        "-d".to_string(),
+        "-x".to_string(),
+        "test_data/a".to_string(),
+        "test_data/b".to_string(),
+        "test_data/x/a".to_string(),
+        "test_data/x/b".to_string(),
+        "test_data/x/c".to_string()
+    ];
+    let (mut processing,fns) = work_through_arguments(args);
+    assert_eq!(fns,vec![
+         "test_data/a".to_string(),
+         "test_data/b".to_string(),
+         "test_data/x/a".to_string(),
+         "test_data/x/b".to_string(),
+         "test_data/x/c".to_string(),
+    ]);
+    let mut result = work_with_block(&mut processing,fns);
+    //println!("result1:{:?}",result);
+    result.sort();
+    let answer = vec![
+           vec![
+             "test_data/a".to_string(),
+             "test_data/x/a".to_string(),
+             "test_data/x/b".to_string(),
+           ],
+    ];
+    assert_eq!(result,answer);
+  }
+  #[test]
+  fn test_multidiff_5() {
+    let args = vec![
+        "-diff".to_string(),
+        "test_data/a".to_string(),
+        "test_data/b".to_string(),
+        "test_data/x/a".to_string(),
+        "test_data/x/b".to_string(),
+        "test_data/x/c".to_string()
+    ];
+    let (mut processing,fns) = work_through_arguments(args);
+    assert_eq!(fns,vec![
+         "test_data/a".to_string(),
+         "test_data/b".to_string(),
+         "test_data/x/a".to_string(),
+         "test_data/x/b".to_string(),
+         "test_data/x/c".to_string(),
+    ]);
+    let _ = work_with_block(&mut processing,fns);
   }
 }
-*/

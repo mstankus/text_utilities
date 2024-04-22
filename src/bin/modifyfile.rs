@@ -60,31 +60,70 @@ fn create_modify_file_vec(args : &[String]) -> Vec::<String> {
   result
 }
 
-fn main() {
-  let args = env::args().collect::<Vec<_>>();
-  let mut processing = create_modify_file_processing(&args);
+fn work_through_arguments(args : Vec::<String>) -> 
+(ComposeCSCSelfMap<TwoStrings>,Vec::<String>) {
+  let processing = create_modify_file_processing(&args);
   let fns = create_modify_file_vec(&args);
+  (processing,fns)
+}
+
+fn process_one_string(processing: &mut ComposeCSCSelfMap<TwoStrings>,a_filename : &str) -> String {
+  let mut pr = TwoStrings::new(a_filename.to_string());
+  pr = processing.invoke(pr);
+  pr.answer
+}
+
+fn main() { 
+  let (mut processing,fns) = work_through_arguments(env::args().collect::<Vec<_>>());
   for a_filename in fns {  
-    let mut pr = TwoStrings::new(a_filename.clone());
-    pr = processing.invoke(pr);
-    println!("{}",pr.answer);
+    println!("{}",process_one_string(&mut processing,&a_filename));
   }
 }
 
-/*
 #[cfg(test)]
 mod tests {
   use super::*;
 
   #[test]
-  fn test_create_modifyfile_obtain() {
-    let vec = ["-a=add".to_string(),
+  fn test_create_modifyfile_obtain_1() {
+    let vec = vec!["-a=add".to_string(),
                "hi".to_string(),
                "there".to_string()];
-    let mut it = create_modify_file_vec(&vec);
-    assert_eq!(it.obtain(),Some("hi".to_string()));
-    assert_eq!(it.obtain(),Some("there".to_string()));
-    assert_eq!(it.obtain(),None);
+    let (mut processing,fns) = work_through_arguments(vec);
+    assert_eq!(process_one_string(&mut processing,&fns[0]),"add".to_string());
+    assert_eq!(process_one_string(&mut processing,&fns[1]),"add".to_string());
+  }
+
+  #[test]
+  fn test_create_modifyfile_obtain_2() {
+    let vec = vec!["-o".to_string(),
+                   "hi".to_string(),
+                   "there".to_string()];
+    let (mut processing,fns) = work_through_arguments(vec);
+    assert_eq!(process_one_string(&mut processing,&fns[0]),"hi".to_string());
+    assert_eq!(process_one_string(&mut processing,&fns[1]),"there".to_string());
+  }
+
+  #[test]
+  fn test_create_modifyfile_obtain_3() {
+    let vec = vec![ "-a=dude".to_string(),
+                    "-o".to_string(),
+                   "hi".to_string(),
+                   "there".to_string()];
+    let (mut processing,fns) = work_through_arguments(vec);
+    assert_eq!(process_one_string(&mut processing,&fns[0]),"dudehi".to_string());
+    assert_eq!(process_one_string(&mut processing,&fns[1]),"dudethere".to_string());
+  }
+
+  #[test]
+  fn test_create_modifyfile_obtain_4() {
+    let vec = vec![ "-a=dude".to_string(),
+                    "-o".to_string(),
+                    "-a=yo".to_string(),
+                   "hi".to_string(),
+                   "there".to_string()];
+    let (mut processing,fns) = work_through_arguments(vec);
+    assert_eq!(process_one_string(&mut processing,&fns[0]),"dudehiyo".to_string());
+    assert_eq!(process_one_string(&mut processing,&fns[1]),"dudethereyo".to_string());
   }
 }
-*/

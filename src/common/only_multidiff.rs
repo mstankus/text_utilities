@@ -1,21 +1,31 @@
+use file_diff::{diff_files};
 use std::cmp::min;
+use std::fs::{File};
 use std::path::Path;
 use std::fs::*;
 use multimap::MultiMap;
 //use crate::csfunctions::*;
 use crate::csmaptopower::*;
+use crate::cscmaptopower::*;
 use crate::cscfunctions::*;
 use crate::csextfunctions::*;
 //use crate::two_strings::*;
 
+
 pub struct RemoveLittleVecString;
-impl CSCExtFunction::<Vec::<String>,Vec::<String>> for RemoveLittleVecString {
-  fn invoke(&mut self,x : Vec::<String>) -> Option::<Vec::<String>> {
+impl CSMapToPower::<Vec::<String>> for RemoveLittleVecString {
+  fn invoke(&self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+    let mut result = vec![];
     if x.len() > 1 {
-      Some(x) 
-    } else {
-      None
+      result.push(x);
     }
+    result
+  } 
+}
+
+impl CSCMapToPower::<Vec::<String>> for RemoveLittleVecString {
+  fn invoke_mut(&mut self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+    self.invoke(x)
   } 
 }
 
@@ -89,6 +99,12 @@ impl CSMapToPower::<Vec::<String>> for SplitByName {
   }
 }
 
+impl CSCMapToPower::<Vec::<String>> for SplitByName {
+  fn invoke_mut(&mut self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+    self.invoke(x)
+  } 
+}
+
 pub struct SplitBySize;
 impl CSMapToPower::<Vec::<String>> for SplitBySize {
   fn invoke(&self,x : Vec::<String>) -> Vec::<Vec::<String>> {
@@ -97,7 +113,9 @@ impl CSMapToPower::<Vec::<String>> for SplitBySize {
     for item in x {
       if let Ok(meta) = metadata(item.clone()) {
         let sz = meta.len();
+        println!("sz1:{}",sz);
         h.insert(sz,item.clone());
+        println!("item1:{:?}",item.clone());
       }
     }
     //println!("{:?}",h);
@@ -107,6 +125,51 @@ impl CSMapToPower::<Vec::<String>> for SplitBySize {
     //println!("{:?}",result);
     result
   }
+}
+
+impl CSCMapToPower::<Vec::<String>> for SplitBySize{
+  fn invoke_mut(&mut self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+    self.invoke(x)
+  } 
+}
+
+pub struct SplitByCompare;
+impl CSMapToPower::<Vec::<String>> for SplitByCompare {
+  fn invoke(&self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+    let mut todo = x;
+    let mut klasses = vec![];
+    while let Some(it) = todo.pop() {
+      let mut yes = vec![it.clone()];
+      let mut no = vec![];
+      while let Some(another) = todo.pop() {
+        let mut file1 = match File::open(it.clone()) {
+          Ok(f) => f,
+          Err(e) => panic!("{}", e),
+        };
+        let mut file2 = match File::open(another.clone()) {
+          Ok(f) => f,
+          Err(e) => panic!("{}", e),
+        };
+        //println!("diffing {} with {}",it,another);
+        if diff_files(&mut file1, &mut file2) {
+          yes.push(another.clone());
+        } else {
+          no.push(another.clone());
+        }
+      }
+      //println!("yes:{:?}",yes);
+      //println!("no:{:?}",no);
+      klasses.push(yes);
+      todo = no;
+    }
+    klasses
+  }
+}
+
+impl CSCMapToPower::<Vec::<String>> for SplitByCompare {
+  fn invoke_mut(&mut self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+    self.invoke(x)
+  } 
 }
 
 #[cfg(test)]

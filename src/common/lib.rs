@@ -12,6 +12,7 @@ pub mod diffall;
 pub mod diff_all;
 pub mod file_information;
 pub mod input_from_file;
+pub mod interval;
 pub mod only_multidiff;
 pub mod passyaml;
 pub mod two_strings;
