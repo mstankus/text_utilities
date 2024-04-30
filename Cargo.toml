@@ -16,6 +16,10 @@ path = "src/bin/multidiff.rs"
 name = "multiremover"
 path = "src/bin/multiremover.rs"
 
+[[bin]]
+name = "openandchoose"
+path = "src/bin/openandchoose.rs"
+
 [lib]
 name = "common"
 path = "src/common/lib.rs"

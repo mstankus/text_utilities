@@ -1,0 +1,6 @@
+abc.txt
+defg.tex
+
+hi
+j
+
