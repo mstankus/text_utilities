@@ -78,6 +78,36 @@ impl CSCExtFunction<String,String> for PassMultipleBlankLines {
   }
 }
 
+pub struct SplitByNameAsSet;
+impl CSMapToPower::<Vec::<String>> for SplitByNameAsSet {
+  fn invoke(&self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+    let mut result = Vec::<Vec::<String>>::new();
+    let mut h = MultiMap::new();
+    for item in x {
+      let fname = item.clone();
+      let mut vec = Vec::new();
+      for c in fname.chars() {
+        vec.push(c);
+      }
+      vec.sort();
+      vec.dedup();
+      h.insert(vec,item.clone());
+    }
+    //println!("{:?}",h);
+    for (_,values) in h.iter_all() {
+      result.push(values.to_vec());
+    }
+    //println!("{:?}",result);
+    result
+  }
+}
+
+impl CSCMapToPower::<Vec::<String>> for SplitByNameAsSet {
+  fn invoke_mut(&mut self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+    self.invoke(x)
+  } 
+}
+
 pub struct SplitByName;
 impl CSMapToPower::<Vec::<String>> for SplitByName {
   fn invoke(&self,x : Vec::<String>) -> Vec::<Vec::<String>> {
@@ -113,9 +143,9 @@ impl CSMapToPower::<Vec::<String>> for SplitBySize {
     for item in x {
       if let Ok(meta) = metadata(item.clone()) {
         let sz = meta.len();
-        println!("sz1:{}",sz);
+        //println!("sz1:{}",sz);
         h.insert(sz,item.clone());
-        println!("item1:{:?}",item.clone());
+        //println!("item1:{:?}",item.clone());
       }
     }
     //println!("{:?}",h);

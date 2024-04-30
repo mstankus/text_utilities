@@ -13,11 +13,14 @@ fn create_multidiff_processing(args : &Vec::<String>)
   -> Vec::<Box::<dyn CSCMapToPower::<Vec::<String>>>>{
   let mut vec : Vec::<Box::<dyn CSCMapToPower::<Vec::<String>>>>= Vec::new();
   for item in args {
-    if item.starts_with('-') {
-      if item=="-" { continue; }
+    if item.starts_with('-') { 
+      if item=="-" { continue;  }
       if item=="-n" {
         //println!("setting up -n");
         vec.push(Box::new(SplitByName{}));
+      } else if item=="-nset" {
+        //println!("setting up -nset");
+        vec.push(Box::new(SplitByNameAsSet{}));
       } else if item=="-s" {
         //println!("setting up -s");
         vec.push(Box::new(SplitBySize{}));
