@@ -1,6 +1,0 @@
-1st file:test_data/a
-2nd file:test_data/b
-1c1
-< ab
----
-> cde
