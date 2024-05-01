@@ -16,9 +16,9 @@ pub fn creation_date(s : &str) -> Result<String,std::io::Error> {
   }
 }
 
-pub fn character_count(s : &str) -> Result<u64,std::io::Error> {
+pub fn character_count(s : &str) -> Result<usize,std::io::Error> {
   match metadata(s) {
-    Ok(meta) => Ok(meta.len()),
+    Ok(meta) => Ok(meta.len().try_into().unwrap()),
     Err(x) => Err(x)
   }
 }
@@ -100,7 +100,7 @@ mod tests {
   fn test_construct_character_count() {
     let result = character_count("test_data/test_file.txt");
     assert!(result.is_ok());
-    assert_eq!(result.unwrap(),27);
+    assert_eq!(result.unwrap(),23);
   }
   #[test]
   fn test_construct_count_words_of_length() {

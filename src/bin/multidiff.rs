@@ -9,21 +9,35 @@ use common::string_to_vecstring::*;
 use std::io::{BufRead,stdin};
 use std::env;
 
+
+type DynFunc =  dyn CSCMapToPower<Vec<String>>;
+type BoxedDynFunc =  Box::<DynFunc>;
+
 fn create_multidiff_processing(args : &Vec::<String>) 
-  -> Vec::<Box::<dyn CSCMapToPower::<Vec::<String>>>>{
+  -> Vec::<BoxedDynFunc> {
   let mut vec : Vec::<Box::<dyn CSCMapToPower::<Vec::<String>>>>= Vec::new();
   for item in args {
-    if item.starts_with('-') { 
-      if item=="-" { continue;  }
+    if item.starts_with('-') {
+      if item=="-" { continue; }
       if item=="-n" {
         //println!("setting up -n");
         vec.push(Box::new(SplitByName{}));
-      } else if item=="-nset" {
-        //println!("setting up -nset");
-        vec.push(Box::new(SplitByNameAsSet{}));
       } else if item=="-s" {
         //println!("setting up -s");
         vec.push(Box::new(SplitBySize{}));
+      } else if item.starts_with("-size-difference=") {
+        println!("setting up -size-difference");
+        let s = "-size-difference=".len();
+        let iter = &mut item[s..].split(',');
+        let n1 = match iter.next() {
+          Some(n) => n.to_string().parse::<usize>().unwrap(),
+          None => { panic!("Need a numbers after size-difference")}
+        };
+        let n2 = match iter.next() {
+          Some(n) => n.to_string().parse::<usize>().unwrap(),
+          None => { panic!("Need a numbers after size-difference")}
+        };
+        vec.push(Box::new(SplitPairsCloseSize::new(n1,n2)));
       } else if item=="-d" {
         //println!("setting up -d");
         vec.push(Box::new(SplitByCompare{}));
@@ -61,7 +75,7 @@ fn create_multidiff_vec(args : &[String]) -> Vec::<String> {
 }
 
 fn work_through_arguments(args : Vec<String>) ->
-  (Vec::<Box::<dyn CSCMapToPower<Vec<String>>>>,Vec<String>) {
+  (Vec::<BoxedDynFunc>,Vec<String>) {
   let processing = create_multidiff_processing(&args);
   //println!("args:{:?}",args);
   let fns = create_multidiff_vec(&args);

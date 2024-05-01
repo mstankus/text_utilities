@@ -9,6 +9,7 @@ use crate::csmaptopower::*;
 use crate::cscmaptopower::*;
 use crate::cscfunctions::*;
 use crate::csextfunctions::*;
+use crate::file_information::*;
 //use crate::two_strings::*;
 
 
@@ -200,6 +201,68 @@ impl CSCMapToPower::<Vec::<String>> for SplitByCompare {
   fn invoke_mut(&mut self,x : Vec::<String>) -> Vec::<Vec::<String>> {
     self.invoke(x)
   } 
+}
+
+pub struct SplitPairsCloseSize {
+  n1 : usize,
+  n2 : usize,
+}
+
+impl SplitPairsCloseSize {
+  pub fn new(n1 : usize,n2 : usize) -> Self {
+    Self { n1 , n2}
+  }
+}
+
+impl CSMapToPower::<Vec::<String>> for SplitPairsCloseSize {
+  fn invoke(&self,mut x : Vec::<String>) -> Vec::<Vec::<String>> {
+    let mut h : MultiMap<usize,String> = MultiMap::new();
+    for item in x.drain(..) {
+      let sz : usize = match character_count(&item) {
+         Ok(n) => n,
+         Err(_) => panic!("Dude"),
+      };
+      h.insert(sz,item);
+    }
+    let mut keys : Vec<usize> = Vec::new();
+    for i in h.keys() {
+      keys.push(*i);
+    }
+    keys.sort();
+    keys.reverse();
+    let mut current_keys= Vec::new();
+    while let Some(key) = keys.pop() {
+      let mut current_names :Vec<String> = Vec::new();
+      for i in &keys {
+        if *i <= key +self.n2 && *i+self.n1>=key{
+          current_names.append(h.get_vec_mut(i).unwrap());
+        }
+      }
+      let other_names :Vec<String> = h.get_vec(&key).unwrap().to_vec();
+      for name1 in &current_names {
+        for name2 in &other_names {
+          println!("{}",name1);
+          println!("{}",name2);
+          println!();
+        }
+      }
+      for i in 0..current_names.len() {
+        for j in (i+1)..current_names.len() {
+          println!("{}",current_names[i]);
+          println!("{}",current_names[j]);
+          println!();
+        }
+      }
+      current_keys.push(key);
+    }
+    Vec::new()
+  }
+}
+
+impl CSCMapToPower::<Vec::<String>> for SplitPairsCloseSize {
+  fn invoke_mut(&mut self,x : Vec::<String>) -> Vec::<Vec::<String>> {
+      self.invoke(x)
+  }
 }
 
 #[cfg(test)]

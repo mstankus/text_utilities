@@ -1,25 +1,42 @@
 use std::env;
 use std::fs::File;
 use std::io::{BufReader,BufRead};
-use std::process::Command;
 use glob::glob;
+
+fn open_some_file(s : &str) -> Option<BufReader<File>> {
+  if let Some(Ok(path))=glob(s).expect("hi").next() {
+    let f = File::open(path.clone());
+    Some(BufReader::new(f.unwrap()))
+  } else {
+    None
+  }
+}
+
+fn open_some_file_read_lines(s : &str,n : usize) -> Option<Vec<String>>{
+  match open_some_file(s) {
+    Some(mut reader) => {
+      let mut v = Vec::new(); 
+       for _i in 0..n {
+         let mut s = String::new();
+         let _ = reader.read_line(&mut s);
+         v.push(s);
+       }
+       Some(v)
+    },
+    None => None
+  }
+}
 
 fn main() {
   let args : Vec<_> = env::args().collect();
-  let str = format!("diff-{}-*",args[1]).to_string();
-  if let Some(Ok(path)) = glob(&str).expect("hi").next() {
-    let f = File::open(path.clone());
-    let mut b = BufReader::new(f.unwrap());
-    let mut s = String::new();
-    let _ = b.read_line(&mut s);
-    println!("item:{:?}",path);
-    println!("rm \"{}\"",&s[9..].trim());
+  let str1 = format!("diff-{}-*",args[1]).to_string();
+  let str2 = format!("diff-*-{}-*",args[1]).to_string();
+  if let Some(lines) = open_some_file_read_lines(&str1,1) {
+    println!("rm ../{}" ,&lines[0][9..]);
+  } else if let Some(lines) = open_some_file_read_lines(&str2,2) {
+    println!("rm ../{}" ,&lines[1][9..]);
+  } else {
+    panic!("Ack");
   }
-  println!("{:?}",Command::new("rm")
-      .arg(format!("diff-{}-*",args[1]).to_string())
-      .arg(format!("diff-*-{}-*",args[1]).to_string())
-      .output()
-      .expect("remove did not work!")
-      .stdout);
+  println!("rm diff-{0}-* diff-*-{0}-*",args[1]);
 }
-

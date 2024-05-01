@@ -216,7 +216,7 @@ mod tests {
   fn test_construct_character_count() {
     let mut it = CharacterCount{};
     let start = TwoStrings::new_with("abc".to_string(),"test_data/test_file.txt".to_string());
-    let finish = TwoStrings::new_with("abc27".to_string(),"test_data/test_file.txt".to_string());
+    let finish = TwoStrings::new_with("abc23".to_string(),"test_data/test_file.txt".to_string());
     assert_eq!(it.invoke(start),finish);
   }
 

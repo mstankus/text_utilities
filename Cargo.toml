@@ -20,6 +20,10 @@ path = "src/bin/multiremover.rs"
 name = "openandchoose"
 path = "src/bin/openandchoose.rs"
 
+[[bin]]
+name = "vi2"
+path = "src/bin/vi2.rs"
+
 [lib]
 name = "common"
 path = "src/common/lib.rs"
